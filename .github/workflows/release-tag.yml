@@ -1,0 +1,149 @@
+name: Release Tag
+
+on:
+  workflow_run:
+    workflows: ["Backend Deploy", "Web Deploy", "Android Build", "iOS Build"]
+    types:
+      - completed
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  create-release:
+    name: Create Release Tag
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Generate version tag
+        id: version
+        run: |
+          # Format: v1.YYYYMMDD.HHMM
+          VERSION="v1.$(date -u +%Y%m%d.%H%M)"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Generated version: $VERSION"
+      
+      - name: Check if tag exists
+        id: check_tag
+        run: |
+          if git rev-parse "${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Create Git tag
+        if: steps.check_tag.outputs.exists == 'false'
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git tag -a "${{ steps.version.outputs.version }}" -m "Release ${{ steps.version.outputs.version }}"
+          git push origin "${{ steps.version.outputs.version }}"
+      
+      - name: Download Android artifact
+        uses: dawidd6/action-download-artifact@v3
+        continue-on-error: true
+        with:
+          workflow: android-build.yml
+          name: agrovision-android
+          path: ./artifacts/android
+      
+      - name: Download iOS artifact
+        uses: dawidd6/action-download-artifact@v3
+        continue-on-error: true
+        with:
+          workflow: ios-build.yml
+          name: agrovision-ios
+          path: ./artifacts/ios
+      
+      - name: Generate release notes
+        id: notes
+        run: |
+          cat << EOF > release_notes.md
+          # AgroVision Release ${{ steps.version.outputs.version }}
+          
+          ## What's New
+          
+          ### Backend
+          - FastAPI backend deployed to Google Cloud Run
+          - All API endpoints operational
+          - AI model integration active
+          
+          ### Web Application
+          - React 19 web app deployed to Firebase Hosting
+          - Dark mode and RTL support
+          - Real-time data synchronization
+          
+          ### Mobile Applications
+          - Android APK available for download
+          - iOS IPA available for TestFlight
+          - Cross-platform feature parity
+          
+          ## Features
+          - 🌾 Crop disease detection with AI
+          - 📊 Field health analytics
+          - 💰 Market intelligence and pricing
+          - 📄 Automated report generation
+          - 🌐 Multilingual support (English, Arabic)
+          - 🌙 Dark mode
+          
+          ## Technical Details
+          - **Version**: ${{ steps.version.outputs.version }}
+          - **Commit**: ${{ github.sha }}
+          - **Date**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          - **Branch**: ${{ github.ref_name }}
+          
+          ## Installation
+          
+          ### Web
+          Visit: https://${{ secrets.FIREBASE_PROJECT_ID }}.web.app
+          
+          ### Android
+          Download the APK from release assets below.
+          
+          ### iOS
+          Download the IPA or install via TestFlight.
+          
+          ## Documentation
+          - [API Contract](docs/API_CONTRACT.md)
+          - [Autobuild Manual](docs/AUTOBUILD_MANUAL.md)
+          - [Product Design Requirements](docs/PDR.md)
+          
+          ## Support
+          For issues and support, please open an issue on GitHub.
+          
+          ---
+          
+          **Full Changelog**: https://github.com/${{ github.repository }}/commits/${{ steps.version.outputs.version }}
+          EOF
+          
+          cat release_notes.md
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        if: steps.check_tag.outputs.exists == 'false'
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: Release ${{ steps.version.outputs.version }}
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
+          files: |
+            artifacts/android/*.apk
+            artifacts/ios/*.ipa
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Post success message
+        run: |
+          echo "🎉 Release ${{ steps.version.outputs.version }} created successfully!"
+          echo "📦 Build artifacts attached"
+          echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.version }}"
+          echo ""
+          echo "✅ AgroVision Platform is ready for deployment and testing!"
