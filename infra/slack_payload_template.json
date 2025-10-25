@@ -1,0 +1,29 @@
+{
+  "username": "AgroVision CI Bot",
+  "icon_emoji": ":seedling:",
+  "attachments": [
+    {
+      "color": "{{COLOR}}",
+      "blocks": [
+        {
+          "type": "header",
+          "text": {
+            "type": "plain_text",
+            "text": "🚀 AgroVision CI/CD Report Updated!"
+          }
+        },
+        {
+          "type": "section",
+          "fields": [
+            { "type": "mrkdwn", "text": "*Repository:* `{{REPO}}`" },
+            { "type": "mrkdwn", "text": "*Environment:* `production`" },
+            { "type": "mrkdwn", "text": "*Updated:* {{TIME}}" },
+            { "type": "mrkdwn", "text": "*✅ Success:* {{SUCCESS_COUNT}}   •   *❌ Failures:* {{FAIL_COUNT}}" },
+            { "type": "mrkdwn", "text": "*📊 Summary:* <https://github.com/{{REPO}}/blob/main/DEPLOYMENT_STATUS.md|Open Report>" },
+            { "type": "mrkdwn", "text": "*🔗 Actions:* <https://github.com/{{REPO}}/actions|View Pipelines>" }
+          ]
+        }
+      ]
+    }
+  ]
+}

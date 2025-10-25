@@ -1,0 +1,164 @@
+name: Monitor Pipelines and Notify
+
+on:
+  schedule:
+    # Run every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch:  # Allow manual trigger for testing
+
+permissions:
+  contents: write
+
+jobs:
+  monitor-and-notify:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
+
+    - name: Fetch workflow runs data
+      id: fetch-workflows
+      run: |
+        # Fetch recent workflow runs from GitHub API
+        RESPONSE=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          "https://api.github.com/repos/${{ github.repository }}/actions/runs?per_page=50")
+        
+        # Parse success and failure counts
+        SUCCESS_COUNT=$(echo "$RESPONSE" | jq '[.workflow_runs[] | select(.conclusion == "success")] | length')
+        FAIL_COUNT=$(echo "$RESPONSE" | jq '[.workflow_runs[] | select(.conclusion == "failure")] | length')
+        
+        # Get failed workflow names for incident log
+        FAILED_JOBS=$(echo "$RESPONSE" | jq -r '[.workflow_runs[] | select(.conclusion == "failure") | .name] | join(", ")')
+        
+        echo "success_count=$SUCCESS_COUNT" >> $GITHUB_OUTPUT
+        echo "fail_count=$FAIL_COUNT" >> $GITHUB_OUTPUT
+        echo "failed_jobs=$FAILED_JOBS" >> $GITHUB_OUTPUT
+        
+        echo "✅ Success count: $SUCCESS_COUNT"
+        echo "❌ Failure count: $FAIL_COUNT"
+        echo "Failed jobs: $FAILED_JOBS"
+
+    - name: Generate DEPLOYMENT_STATUS.md
+      run: |
+        TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+        cat > DEPLOYMENT_STATUS.md << EOF
+        # 📊 AgroVision CI/CD Deployment Status
+        
+        **Last Updated:** $TIMESTAMP
+        
+        ## Pipeline Summary
+        
+        - ✅ **Successful Workflows:** ${{ steps.fetch-workflows.outputs.success_count }}
+        - ❌ **Failed Workflows:** ${{ steps.fetch-workflows.outputs.fail_count }}
+        
+        ## Quick Links
+        
+        - [View All Workflows](https://github.com/${{ github.repository }}/actions)
+        - [Incident Log](INCIDENT_LOG.md)
+        
+        ---
+        *This report is automatically updated every 6 hours by the monitor-pipelines workflow.*
+        EOF
+
+    - name: Update incident log if failures exist
+      if: steps.fetch-workflows.outputs.fail_count != '0'
+      run: |
+        TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+        DATE=$(date -u +"%Y-%m-%d")
+        FAILED_JOBS="${{ steps.fetch-workflows.outputs.failed_jobs }}"
+        
+        # Create INCIDENT_LOG.md if it doesn't exist
+        if [ ! -f INCIDENT_LOG.md ]; then
+          echo "# 🚨 AgroVision CI/CD Incident Log" > INCIDENT_LOG.md
+          echo "" >> INCIDENT_LOG.md
+          echo "This log tracks deployment failures and incidents for audit purposes." >> INCIDENT_LOG.md
+          echo "" >> INCIDENT_LOG.md
+          echo "---" >> INCIDENT_LOG.md
+          echo "" >> INCIDENT_LOG.md
+        fi
+        
+        # Append new incident entry
+        cat >> INCIDENT_LOG.md << EOF
+        ## [$DATE] Deployment Incident
+        ❌ Failed Workflows: $FAILED_JOBS
+        🕒 Timestamp: $TIMESTAMP
+        🔗 View: https://github.com/${{ github.repository }}/actions
+        
+        ---
+        
+        EOF
+        
+        echo "📝 Incident logged successfully"
+
+    - name: Commit and push updates
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        
+        git add DEPLOYMENT_STATUS.md
+        if [ -f INCIDENT_LOG.md ]; then
+          git add INCIDENT_LOG.md
+        fi
+        
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "chore: update deployment status and incident log [skip ci]"
+          git push
+          echo "✅ Changes committed and pushed"
+        fi
+
+    - name: Notify Slack
+      if: always()
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      run: |
+        # Read the Slack payload template
+        TEMPLATE=$(cat infra/slack_payload_template.json)
+        
+        # Get current UTC time
+        CURRENT_TIME=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+        
+        # Determine color based on failure count
+        FAIL_COUNT="${{ steps.fetch-workflows.outputs.fail_count }}"
+        if [ "$FAIL_COUNT" = "0" ]; then
+          COLOR="good"
+        else
+          COLOR="danger"
+        fi
+        
+        # Replace placeholders in template (optimized with single sed call)
+        PAYLOAD=$(echo "$TEMPLATE" | sed \
+          -e "s|{{REPO}}|${{ github.repository }}|g" \
+          -e "s|{{TIME}}|$CURRENT_TIME|g" \
+          -e "s|{{SUCCESS_COUNT}}|${{ steps.fetch-workflows.outputs.success_count }}|g" \
+          -e "s|{{FAIL_COUNT}}|${{ steps.fetch-workflows.outputs.fail_count }}|g" \
+          -e "s|{{COLOR}}|$COLOR|g")
+        
+        # Send to Slack webhook
+        if [ -n "$SLACK_WEBHOOK_URL" ]; then
+          HTTP_RESPONSE=$(curl -X POST -H "Content-type: application/json" \
+            --data "$PAYLOAD" \
+            --max-time 30 \
+            --connect-timeout 10 \
+            --retry 2 \
+            --retry-delay 5 \
+            -w "\n%{http_code}" \
+            "$SLACK_WEBHOOK_URL")
+          
+          HTTP_CODE=$(echo "$HTTP_RESPONSE" | tail -n1)
+          
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ Slack notification sent successfully"
+          else
+            echo "⚠️ Slack notification failed with HTTP code: $HTTP_CODE"
+          fi
+        else
+          echo "⚠️ SLACK_WEBHOOK_URL not configured, skipping notification"
+          echo "📋 Payload that would have been sent:"
+          echo "$PAYLOAD"
+        fi
