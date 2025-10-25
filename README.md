@@ -1,87 +1,106 @@
-# Azure Incident Response Playbook
+# Agropilote
 
-This playbook provides automated methods to detect and respond to public Blob Storage access in Azure, leveraging native tools and automation.
+Agropilote is a modern agricultural management and monitoring platform designed to help farmers and agricultural professionals optimize their operations through data-driven insights and automation.
 
-## Table of Contents
-- [🎯 Objective](#objective)
-- [🛠️ Tools Used](#tools-used)
-- [🧠 Why This Matters](#why-this-matters)
-- [💥 Outcome](#outcome)
-- [🔬 Real-World Scenario](#real-world-scenario)
-- [🛠️ Azure Logic App: Automated Alert Response](#azure-logic-app-automated-alert-response)
-- [📁 Logic App Definition](#logic-app-definition)
-- [📧 Email Notification](#email-notification)
-- [🌐 Trigger](#trigger)
-- [🎉 Usage](#usage)
-- [🤝 Contributing](#contributing)
-- [📜 License](#license)
+## 🌱 Overview
 
-## 🎯 Objective
-Detect and respond to public Blob storage access in Azure using native tools and automation.
+Agropilote provides comprehensive tools for:
+- Crop monitoring and management
+- Field planning and optimization
+- Weather data integration
+- Yield predictions and analytics
+- Resource management (water, fertilizers, equipment)
+- Farm operations tracking
 
-## 🛠️ Tools Used
-- **Azure Defender for Storage**: Provides security alerts for Blob storage.
-- **Azure Monitor & Sentinel**: For monitoring and logging.
-- **Azure Logic Apps + Functions**: For automation.
-- **PowerShell**: For simulations.
+## ✨ Features
 
-## 🧠 Why This Matters
-Publicly exposed blob containers are among the most exploited misconfigurations in Azure. This playbook simulates a breach and shows how to contain it quickly.
+- **Real-time Monitoring**: Track crop health and field conditions in real-time
+- **Data Analytics**: Make informed decisions based on historical and predictive data
+- **Mobile Access**: Manage your farm operations from anywhere
+- **Integration Ready**: Connect with existing farm equipment and IoT sensors
+- **Reporting**: Generate comprehensive reports for compliance and analysis
 
-## 💥 Outcome
-✔️ Real-time alert on blob misconfiguration  
-✔️ Automated remediation using Logic Apps or Azure Functions  
-✔️ SIEM logging into Sentinel with threat tags  
+## 🚀 Getting Started
 
-## 🔬 Real-World Scenario
-This playbook automates alert responses via a Logic App, triggered by a security alert or manual HTTP request, which sends an email to the security team detailing the incident.
+### Prerequisites
 
-## ⚙️ Azure Logic App: Automated Alert Response
+- Node.js (v14 or higher)
+- Python (v3.8 or higher)
+- Database (PostgreSQL/MySQL)
 
-This Logic App is triggered by a security alert (or manual HTTP trigger) and automatically sends an email to the security team with details of the incident.
+### Installation
 
-- Logic App Definition: [View JSON](logic-apps/blob-alert-remediation.json)
-- Email Notification: Configured via shared mailbox in Azure
-- Trigger: HTTP Request (simulating alert system)
-### 📁 Logic App Definition
-[View JSON](logic-apps/blob-alert-remediation.json)
+```bash
+# Clone the repository
+git clone https://github.com/JimmyNur/agropilote.git
 
-# 🔍 Public Blob Misconfiguration – Real-World Simulation
+# Navigate to the project directory
+cd agropilote
 
-## 🧪 Goal
-Simulate a real-world cloud security breach caused by misconfigured Azure Blob storage and demonstrate automated incident response.
+# Install dependencies
+npm install
 
-## 💣 Breach Steps
-1. Created a blob container with public read access
-2. Uploaded a file simulating sensitive internal data
-3. Accessed the blob anonymously via direct URL
-4. Triggered Logic App via HTTP or alert simulation
-5. Auto-remediation: removed public access + email notification sent
+# Configure environment variables
+cp .env.example .env
 
-## ✅ Success Indicators
-- Logic App fired immediately
-- Access to the blob revoked
-- Email received with breach info
+# Run the application
+npm start
+```
 
-## 📌 Lessons Learned
-Misconfigurations are still the biggest real-world cloud risk. This workflow proves response time can be reduced to seconds through automation.
-## 🧠 Architecture Flow
+## 📁 Project Structure
 
-![Logic Flow] (https://docs.google.com/document/d/1ymf0H8FPWlSiFtJzizTa754bXj6OIMSMutZWDZ1I4J0/edit?usp=sharing)
+```
+agropilote/
+├── src/              # Source code
+├── docs/             # Documentation
+├── tests/            # Test files
+├── config/           # Configuration files
+└── README.md         # This file
+```
 
-### 📧 Email Notification
-Configured via a shared mailbox in Azure  
+## 🔧 Configuration
 
-### 🌐 Trigger
-HTTP Request (simulating alert system)
+Edit the `.env` file to configure:
+- Database connection
+- API keys for weather services
+- Authentication settings
+- Feature flags
 
-![Logic App Flow] (https://docs.google.com/document/d/1j--lCkL3hrCUEw3Xb_zDK0R8PVreEPYZKjILmOXkr6E/edit?usp=sharing)
+## 📚 Documentation
 
-## 🎉 Usage
-Instructions on how to trigger the automation and what to expect after running it.
+For detailed documentation, please visit our [Wiki](../../wiki) or check the `docs/` directory.
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+npm test
+
+# Run specific test suite
+npm test -- --suite=integration
+```
 
 ## 🤝 Contributing
-Contributions are welcome! Please read the [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to contribute.
 
-## 📜 License
+We welcome contributions! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and development process.
+
+## 📝 License
+
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 📧 Contact
+
+For questions and support, please open an issue or contact the maintainers.
+
+## 🙏 Acknowledgments
+
+- Thanks to all contributors who have helped build Agropilote
+- Special thanks to the agricultural community for their valuable feedback
