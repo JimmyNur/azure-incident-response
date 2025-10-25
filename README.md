@@ -2,6 +2,21 @@
 
 This playbook provides automated methods to detect and respond to public Blob Storage access in Azure, leveraging native tools and automation.
 
+---
+
+## 🌾 AgroVision Mobile App
+
+This repository also contains the **AgroVision Mobile** application - an AI-powered agriculture intelligence platform.
+
+📱 **[View Mobile App Documentation](agrovision-mobile/README.md)**
+
+### Quick Links
+- [Android Build Workflow](.github/workflows/android.yml)
+- [iOS Build Workflow](.github/workflows/ios.yml)
+- [Release Workflow](.github/workflows/release.yml)
+
+---
+
 ## Table of Contents
 - [🎯 Objective](#objective)
 - [🛠️ Tools Used](#tools-used)

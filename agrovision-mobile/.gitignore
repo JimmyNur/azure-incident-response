@@ -1,0 +1,73 @@
+# Node modules
+node_modules/
+
+# Expo
+.expo/
+.expo-shared/
+dist/
+web-build/
+
+# Native
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+*.keystore
+
+# Build artifacts
+build/
+*.apk
+*.aab
+*.ipa
+
+# macOS
+.DS_Store
+*.pem
+
+# local env files
+.env
+.env.local
+.env.*.local
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Android/Gradle
+android/.gradle
+android/build/
+android/app/build/
+android/app/release/
+android/app/debug/
+android/captures/
+*.iml
+
+# iOS/Xcode
+ios/build/
+ios/Pods/
+ios/*.xcworkspace
+xcuserdata/
+*.xcuserstate
+*.moved-aside
+DerivedData/
+*.hmap
+*.ipa
+
+# Testing
+coverage/
+.nyc_output/
