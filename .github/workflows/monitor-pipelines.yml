@@ -1,0 +1,62 @@
+name: Monitor Pipelines & Summarize
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"        # every 6 hours
+  workflow_dispatch:              # manual trigger
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  summarize:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Collect workflow runs (last 24 h)
+        id: runs
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require("fs");
+            const { data: workflows } = await github.rest.actions.listRepoWorkflows({
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
+            let report = `# 🚀 Azure Incident Response Deployment Status\n\n_Last updated: ${new Date().toISOString()}_\n\n`;
+            for (const wf of workflows.workflows) {
+              const { data: runs } = await github.rest.actions.listWorkflowRuns({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: wf.id,
+                per_page: 5
+              });
+              const recent = runs.workflow_runs
+                .filter(r => (Date.now() - new Date(r.updated_at)) < 24*60*60*1000);
+              if (recent.length > 0) {
+                report += `## ${wf.name}\n`;
+                for (const r of recent) {
+                  report += `- **${r.status.toUpperCase()}** → [Run #${r.run_number}](${r.html_url}) `
+                           + `• ${r.conclusion || "running"} • ${r.updated_at}\n`;
+                }
+                report += "\n";
+              }
+            }
+            fs.writeFileSync("DEPLOYMENT_STATUS.md", report);
+
+      - name: Commit summary
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add DEPLOYMENT_STATUS.md
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "📊 Auto-update deployment summary"
+            git push
+          fi
