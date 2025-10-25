@@ -37,7 +37,7 @@ jobs:
                 per_page: 5
               });
               const recent = runs.workflow_runs
-                .filter(r => (Date.now() - new Date(r.created_at)) < 24*60*60*1000);
+                .filter(r => (Date.now() - new Date(r.updated_at)) < 24*60*60*1000);
               if (recent.length > 0) {
                 report += `## ${wf.name}\n`;
                 for (const r of recent) {
@@ -54,5 +54,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add DEPLOYMENT_STATUS.md
-          git commit -m "📊 Auto-update deployment summary" || echo "No changes"
-          git push
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "📊 Auto-update deployment summary"
+            git push
+          fi
