@@ -1,0 +1,37 @@
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+*.env
+
+# API keys and credentials
+*.key
+*.pem
+*.p12
+*.pfx
+credentials.json
+secrets.json
+
+# Azure specific
+local.settings.json
+*.publishsettings
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
