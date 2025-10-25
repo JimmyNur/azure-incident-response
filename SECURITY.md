@@ -142,9 +142,9 @@ Use tools to scan for exposed secrets:
 
 ## 📚 Additional Resources
 
-- [Azure Key Vault Best Practices](https://docs.microsoft.com/azure/key-vault/general/best-practices)
-- [Managed Identities for Azure Resources](https://docs.microsoft.com/azure/active-directory/managed-identities-azure-resources/)
-- [Azure Security Baseline](https://docs.microsoft.com/security/benchmark/azure/)
+- [Azure Key Vault Best Practices](https://learn.microsoft.com/azure/key-vault/general/best-practices)
+- [Managed Identities for Azure Resources](https://learn.microsoft.com/azure/active-directory/managed-identities-azure-resources/)
+- [Azure Security Baseline](https://learn.microsoft.com/security/benchmark/azure/)
 - [OWASP Secrets Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html)
 
 ## ✅ Verification Checklist
