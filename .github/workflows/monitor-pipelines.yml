@@ -104,7 +104,8 @@ jobs:
         run: |
           # Prepare Slack message payload
           DEPLOYMENT_STATUS_URL="${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/DEPLOYMENT_STATUS.md"
-          ACTIONS_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          ACTIONS_URL="${{ github.server_url }}/${{ github.repository }}/actions"
+          CURRENT_RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           
           # Create JSON payload for Slack
           PAYLOAD=$(cat <<EOF
@@ -144,7 +145,7 @@ jobs:
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "🔗 <${ACTIONS_URL}|View Latest GitHub Actions Run>"
+                  "text": "🔗 <${ACTIONS_URL}|View All GitHub Actions> | <${CURRENT_RUN_URL}|Current Run>"
                 }
               }
             ]
@@ -155,11 +156,16 @@ jobs:
           # Send to Slack
           if [ -n "$SLACK_WEBHOOK_URL" ]; then
             echo "Sending notification to Slack..."
-            curl -X POST \
+            if curl -X POST \
               -H 'Content-Type: application/json' \
               -d "$PAYLOAD" \
-              "$SLACK_WEBHOOK_URL"
-            echo "Slack notification sent successfully!"
+              "$SLACK_WEBHOOK_URL" \
+              --fail --silent --show-error; then
+              echo "✅ Slack notification sent successfully!"
+            else
+              echo "❌ Failed to send Slack notification"
+              exit 1
+            fi
           else
             echo "⚠️  SLACK_WEBHOOK_URL not configured. Skipping Slack notification."
           fi
