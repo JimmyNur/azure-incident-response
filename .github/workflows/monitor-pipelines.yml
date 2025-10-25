@@ -44,10 +44,11 @@ jobs:
 
     - name: Generate DEPLOYMENT_STATUS.md
       run: |
-        cat > DEPLOYMENT_STATUS.md << 'EOF'
+        TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+        cat > DEPLOYMENT_STATUS.md << EOF
         # 📊 AgroVision CI/CD Deployment Status
         
-        **Last Updated:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+        **Last Updated:** $TIMESTAMP
         
         ## Pipeline Summary
         
@@ -62,9 +63,6 @@ jobs:
         ---
         *This report is automatically updated every 6 hours by the monitor-pipelines workflow.*
         EOF
-        
-        # Replace placeholders with actual values
-        sed -i "s|\$(date -u +\"%Y-%m-%d %H:%M:%S UTC\")|$(date -u +"%Y-%m-%d %H:%M:%S UTC")|g" DEPLOYMENT_STATUS.md
 
     - name: Update incident log if failures exist
       if: steps.fetch-workflows.outputs.fail_count != '0'
@@ -133,18 +131,22 @@ jobs:
           COLOR="danger"
         fi
         
-        # Replace placeholders in template
-        PAYLOAD=$(echo "$TEMPLATE" | \
-          sed "s|{{REPO}}|${{ github.repository }}|g" | \
-          sed "s|{{TIME}}|$CURRENT_TIME|g" | \
-          sed "s|{{SUCCESS_COUNT}}|${{ steps.fetch-workflows.outputs.success_count }}|g" | \
-          sed "s|{{FAIL_COUNT}}|${{ steps.fetch-workflows.outputs.fail_count }}|g" | \
-          sed "s|{{COLOR}}|$COLOR|g")
+        # Replace placeholders in template (optimized with single sed call)
+        PAYLOAD=$(echo "$TEMPLATE" | sed \
+          -e "s|{{REPO}}|${{ github.repository }}|g" \
+          -e "s|{{TIME}}|$CURRENT_TIME|g" \
+          -e "s|{{SUCCESS_COUNT}}|${{ steps.fetch-workflows.outputs.success_count }}|g" \
+          -e "s|{{FAIL_COUNT}}|${{ steps.fetch-workflows.outputs.fail_count }}|g" \
+          -e "s|{{COLOR}}|$COLOR|g")
         
         # Send to Slack webhook
         if [ -n "$SLACK_WEBHOOK_URL" ]; then
           HTTP_RESPONSE=$(curl -X POST -H "Content-type: application/json" \
             --data "$PAYLOAD" \
+            --max-time 30 \
+            --connect-timeout 10 \
+            --retry 2 \
+            --retry-delay 5 \
             -w "\n%{http_code}" \
             "$SLACK_WEBHOOK_URL")
           
