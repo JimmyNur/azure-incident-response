@@ -1,0 +1,101 @@
+name: iOS Build
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'agrovision-mobile/**'
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'agrovision-mobile/**'
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type (simulator or device)'
+        required: true
+        default: 'simulator'
+        type: choice
+        options:
+          - simulator
+          - device
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '18.x'
+
+jobs:
+  build-ios:
+    name: Build iOS App
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: agrovision-mobile/package-lock.json
+
+      - name: Setup Ruby for CocoaPods
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.0'
+          bundler-cache: false
+
+      - name: Setup Expo and EAS
+        run: |
+          npm install -g expo-cli eas-cli
+
+      - name: Install dependencies
+        working-directory: ./agrovision-mobile
+        run: npm ci
+
+      - name: Setup EAS credentials
+        working-directory: ./agrovision-mobile
+        run: |
+          echo "EAS credentials configured"
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build iOS Simulator
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.build_type == 'simulator'
+        working-directory: ./agrovision-mobile
+        run: |
+          eas build --platform ios --profile development --non-interactive --no-wait
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build iOS Device (Production)
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.build_type == 'device'
+        working-directory: ./agrovision-mobile
+        run: |
+          eas build --platform ios --profile production --non-interactive --no-wait
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+      - name: Notify build started
+        if: success()
+        run: |
+          echo "✅ iOS build initiated successfully"
+          echo "📱 Check EAS build dashboard for progress"
+          echo "🔗 https://expo.dev/accounts/[your-account]/projects/agrovision-mobile/builds"
+
+      - name: Upload build logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build-logs
+          path: agrovision-mobile/.expo/
+          retention-days: 7

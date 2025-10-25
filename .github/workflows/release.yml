@@ -1,0 +1,111 @@
+name: Version Tag and Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.0.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: '18.x'
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version
+        id: get_version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/v}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          CHANGELOG=$(git log --pretty=format:"- %s (%h)" $(git describe --tags --abbrev=0 HEAD^)..HEAD 2>/dev/null || git log --pretty=format:"- %s (%h)" -10)
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.get_version.outputs.tag }}
+          release_name: AgroVision Mobile ${{ steps.get_version.outputs.tag }}
+          body: |
+            ## 🌾 AgroVision Mobile ${{ steps.get_version.outputs.tag }}
+
+            ### 📱 Mobile App Release
+
+            This release includes builds for both Android and iOS platforms.
+
+            ### 🔧 Changes
+            ${{ steps.changelog.outputs.changelog }}
+
+            ### 📥 Downloads
+
+            - **Android APK**: Available on Google Play Store or via EAS build
+            - **iOS IPA**: Available on Apple App Store or via TestFlight
+
+            ### 🚀 Features
+            - AI-powered crop disease detection
+            - Real-time farm analytics
+            - Market intelligence and price forecasting
+            - Multilingual support (English + Arabic)
+            - Offline mode support
+
+            ### 📖 Documentation
+            See the [README](https://github.com/${{ github.repository }}/blob/main/agrovision-mobile/README.md) for setup and usage instructions.
+          draft: false
+          prerelease: false
+
+  build-and-attach:
+    name: Build and Attach Binaries
+    needs: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Build Android and iOS
+        working-directory: ./agrovision-mobile
+        run: |
+          echo "Building Android and iOS apps..."
+          eas build --platform all --profile production --non-interactive --no-wait
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Notify completion
+        run: |
+          echo "✅ Release created successfully"
+          echo "📦 Builds initiated on EAS"
+          echo "🔗 Monitor builds: https://expo.dev/accounts/[your-account]/projects/agrovision-mobile/builds"

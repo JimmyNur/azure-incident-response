@@ -1,0 +1,67 @@
+{
+  "expo": {
+    "name": "AgroVision",
+    "slug": "agrovision-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#22c55e"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.agrovision.mobile",
+      "buildNumber": "1.0.0",
+      "infoPlist": {
+        "NSCameraUsageDescription": "AgroVision needs camera access to detect crop diseases",
+        "NSPhotoLibraryUsageDescription": "AgroVision needs photo library access to analyze crop images",
+        "NSLocationWhenInUseUsageDescription": "AgroVision needs location access to provide localized recommendations"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#22c55e"
+      },
+      "package": "com.agrovision.mobile",
+      "versionCode": 1,
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-font",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow AgroVision to access your camera for crop disease detection"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow AgroVision to use your location for localized recommendations"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "agrovision-mobile"
+      }
+    }
+  }
+}
