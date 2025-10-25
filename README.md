@@ -12,6 +12,7 @@ This playbook provides automated methods to detect and respond to public Blob St
 - [📁 Logic App Definition](#logic-app-definition)
 - [📧 Email Notification](#email-notification)
 - [🌐 Trigger](#trigger)
+- [🔐 Security & Secrets Management](#security--secrets-management)
 - [🎉 Usage](#usage)
 - [🤝 Contributing](#contributing)
 - [📜 License](#license)
@@ -76,6 +77,31 @@ Configured via a shared mailbox in Azure
 HTTP Request (simulating alert system)
 
 ![Logic App Flow] (https://docs.google.com/document/d/1j--lCkL3hrCUEw3Xb_zDK0R8PVreEPYZKjILmOXkr6E/edit?usp=sharing)
+
+## 🔐 Security & Secrets Management
+
+### Environment Variables
+This project uses environment variables for configuration. **Never commit sensitive credentials to version control.**
+
+#### Setup Instructions
+1. Copy `.env.example` to `.env`
+2. Fill in your Azure credentials and configuration
+3. Ensure `.env` is listed in `.gitignore` (already configured)
+
+#### Best Practices
+- **Use Azure Key Vault** for production secrets
+- **Enable Managed Identities** to eliminate hardcoded credentials
+- **Rotate credentials regularly** (every 90 days minimum)
+- **Follow least privilege principle** for all service principals and access keys
+
+📖 **See [SECURITY.md](SECURITY.md) for comprehensive secrets management guidelines**
+
+### Key Security Features
+- ✅ `.gitignore` configured to prevent credential exposure
+- ✅ `.env.example` template provided for easy setup
+- ✅ Azure Key Vault integration recommended
+- ✅ Managed Identity support for secure authentication
+- ✅ Audit logging for all security operations
 
 ## 🎉 Usage
 Instructions on how to trigger the automation and what to expect after running it.
