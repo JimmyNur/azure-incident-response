@@ -1,0 +1,47 @@
+{
+  "ar": {
+    "app_title": "أجرو فيجن",
+    "nav": {
+      "dashboard": "لوحة التحكم",
+      "field_health": "صحة الحقل",
+      "market_prices": "أسعار السوق",
+      "reports": "التقارير",
+      "logout": "تسجيل الخروج"
+    },
+    "dashboard": {
+      "welcome": "مرحباً بك في أجرو فيجن",
+      "overview": "نظرة عامة على المزرعة",
+      "health_score": "درجة الصحة",
+      "recent_alerts": "التنبيهات الأخيرة",
+      "quick_actions": "إجراءات سريعة"
+    },
+    "field_health": {
+      "title": "تحليلات صحة الحقل",
+      "ndvi": "مؤشر NDVI",
+      "soil_moisture": "رطوبة التربة",
+      "temperature": "درجة الحرارة",
+      "alerts": "التنبيهات",
+      "recommendations": "التوصيات"
+    },
+    "market": {
+      "title": "أسعار السوق",
+      "current_price": "السعر الحالي",
+      "price_change": "تغير السعر",
+      "forecast": "التوقعات",
+      "recommendations": "التوصيات"
+    },
+    "reports": {
+      "title": "التقارير",
+      "generate": "إنشاء تقرير",
+      "download": "تحميل",
+      "recent_reports": "التقارير الأخيرة"
+    },
+    "common": {
+      "loading": "جاري التحميل...",
+      "error": "خطأ في تحميل البيانات",
+      "retry": "إعادة المحاولة",
+      "save": "حفظ",
+      "cancel": "إلغاء"
+    }
+  }
+}

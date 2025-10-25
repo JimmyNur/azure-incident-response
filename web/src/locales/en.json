@@ -1,0 +1,47 @@
+{
+  "en": {
+    "app_title": "AgroVision",
+    "nav": {
+      "dashboard": "Dashboard",
+      "field_health": "Field Health",
+      "market_prices": "Market Prices",
+      "reports": "Reports",
+      "logout": "Logout"
+    },
+    "dashboard": {
+      "welcome": "Welcome to AgroVision",
+      "overview": "Farm Overview",
+      "health_score": "Health Score",
+      "recent_alerts": "Recent Alerts",
+      "quick_actions": "Quick Actions"
+    },
+    "field_health": {
+      "title": "Field Health Analytics",
+      "ndvi": "NDVI Index",
+      "soil_moisture": "Soil Moisture",
+      "temperature": "Temperature",
+      "alerts": "Alerts",
+      "recommendations": "Recommendations"
+    },
+    "market": {
+      "title": "Market Prices",
+      "current_price": "Current Price",
+      "price_change": "Price Change",
+      "forecast": "Forecast",
+      "recommendations": "Recommendations"
+    },
+    "reports": {
+      "title": "Reports",
+      "generate": "Generate Report",
+      "download": "Download",
+      "recent_reports": "Recent Reports"
+    },
+    "common": {
+      "loading": "Loading...",
+      "error": "Error loading data",
+      "retry": "Retry",
+      "save": "Save",
+      "cancel": "Cancel"
+    }
+  }
+}
